@@ -34,14 +34,8 @@ def load_severity_mapping():
     
     if not mapping_file.exists():
         print(
-            f"Warning: Severity mapping file not found at {mapping_file}",
-            file=sys.stderr
-        )
-        print(
-            "Run 'python scripts/parse_prisma_docs.py' to generate mappings,",
-            file=sys.stderr
-        )
-        print(
+            f"Warning: Severity mapping file not found at {mapping_file}\n"
+            "Run 'python scripts/parse_prisma_docs.py' to generate mappings,\n"
             "or set CHECKOV_MAPPING_FILE environment variable to specify a custom path.",
             file=sys.stderr
         )

@@ -38,11 +38,16 @@ def clone_or_update_repo() -> Path:
         shutil.rmtree(REPO_CLONE_DIR)
     
     # Shallow clone to save time and space
-    subprocess.run(
+    result = subprocess.run(
         ["git", "clone", "--depth", "1", PRISMA_DOCS_REPO, str(REPO_CLONE_DIR)],
         check=True,
-        capture_output=True
+        capture_output=True,
+        text=True
     )
+    
+    # Log any warnings or messages from git
+    if result.stderr:
+        print(f"Git output: {result.stderr}", file=sys.stderr)
     
     print(f"Repository cloned to {REPO_CLONE_DIR}")
     return REPO_CLONE_DIR
@@ -82,9 +87,10 @@ def extract_checkov_ids(content: str) -> List[str]:
     matches2 = re.findall(pattern2, content)
     checkov_ids.extend([m.strip('|') for m in matches2])
     
-    # Pattern 3: CKV_... or CKV3_... in text
-    # More conservative pattern to avoid false positives
-    pattern3 = r'\bCKV[23]?_[A-Z]+_\d+\b'
+    # Pattern 3: CKV_... or CKV2_... or CKV3_... in text
+    # Matches: CKV_AWS_1, CKV2_AWS_1, CKV3_SAST_1, etc.
+    # Optional digit after CKV allows for versioned checks (CKV2, CKV3, future versions)
+    pattern3 = r'\bCKV\d?_[A-Z]+_\d+\b'
     matches3 = re.findall(pattern3, content)
     checkov_ids.extend(matches3)
     
