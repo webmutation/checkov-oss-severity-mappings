@@ -237,27 +237,6 @@ security_scan_with_scripts:
       json: results.json
 ```
 
-### Jenkins Example
-
-```groovy
-pipeline {
-    agent any
-    stages {
-        stage('Security Scan') {
-            steps {
-                sh '''
-                    pip install checkov
-                    git clone https://github.com/webmutation/chekov-oss-severity-mappings.git /tmp/mappings
-                    checkov -d . -o json | \
-                        python /tmp/mappings/scripts/enrich_checkov_output.py | \
-                        python /tmp/mappings/scripts/filter_by_severity.py --min-severity HIGH > results.json
-                '''
-            }
-        }
-    }
-}
-```
-
 ## 🔄 Updating Mappings
 
 ### Automatic Updates
