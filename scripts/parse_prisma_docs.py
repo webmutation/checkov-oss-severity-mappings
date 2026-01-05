@@ -10,6 +10,7 @@ Output files are written to the mappings/ directory:
 - checkov_severity_mapping.json: Simple {checkov_id: severity} mapping
 - checkov_severity_mapping_detailed.json: Detailed mapping with metadata
 - severity_mapping.py: Python module with SEVERITY_MAPPING dict
+- .checkov.yaml: Checkov configuration file with severity overrides
 """
 
 import os
@@ -328,6 +329,31 @@ def write_python_module(mapping: Dict[str, str], output_path: Path):
     print(f"Wrote Python module to {output_path}")
 
 
+def write_checkov_config(mapping: Dict[str, str], output_path: Path):
+    """Write Checkov configuration file with severity overrides."""
+    lines = [
+        '# Checkov Configuration File',
+        '# Auto-generated from Prisma Cloud documentation.',
+        '# Do not edit manually - run scripts/parse_prisma_docs.py to regenerate.',
+        '#',
+        '# Usage: checkov -d /path/to/code --config-file .checkov.yaml',
+        '#        checkov -d /path/to/code --config-file .checkov.yaml --check-severity HIGH',
+        '',
+        '# Custom severity overrides for Checkov checks',
+        'check-severity-overrides:',
+    ]
+    
+    # Sort by key for consistency
+    for checkov_id in sorted(mapping.keys()):
+        severity = mapping[checkov_id]
+        lines.append(f'  {checkov_id}: {severity}')
+    
+    with open(output_path, 'w', encoding='utf-8') as f:
+        f.write('\n'.join(lines))
+    
+    print(f"Wrote Checkov config file to {output_path} ({len(mapping)} entries)")
+
+
 def main():
     """Main execution function."""
     print("=" * 80)
@@ -364,6 +390,10 @@ def main():
     write_python_module(
         simple_mapping,
         MAPPINGS_DIR / "severity_mapping.py"
+    )
+    write_checkov_config(
+        simple_mapping,
+        MAPPINGS_DIR / ".checkov.yaml"
     )
     
     print("\n" + "=" * 80)

@@ -65,9 +65,32 @@ severity = get_severity("CKV_K8S_41")  # Returns "LOW"
 all_mappings = SEVERITY_MAPPING
 ```
 
+### Option 4: Use Checkov Configuration File (Best for CI/CD)
+
+Use the pre-generated `.checkov.yaml` configuration file with Checkov's native configuration support:
+
+```bash
+# Clone this repository
+git clone https://github.com/webmutation/chekov-oss-severity-mappings.git
+cd chekov-oss-severity-mappings
+
+# Run Checkov with the configuration file
+checkov -d /path/to/code --config-file mappings/.checkov.yaml
+
+# Filter by severity threshold (only show HIGH and CRITICAL)
+checkov -d /path/to/code --config-file mappings/.checkov.yaml --check-severity HIGH
+
+# Or copy the config to your project root
+cp mappings/.checkov.yaml /path/to/your/project/.checkov.yaml
+cd /path/to/your/project
+checkov -d . --config-file .checkov.yaml
+```
+
+**Note**: The `.checkov.yaml` file contains `check-severity-overrides` for all 1,527 Checkov IDs, allowing Checkov to use the correct severity levels natively.
+
 ## 📊 Available Mappings
 
-This repository provides three mapping files in the `mappings/` directory:
+This repository provides four mapping files in the `mappings/` directory:
 
 1. **`checkov_severity_mapping.json`** - Simple key-value mapping
    ```json
@@ -103,14 +126,53 @@ This repository provides three mapping files in the `mappings/` directory:
        return SEVERITY_MAPPING.get(checkov_id, default)
    ```
 
+4. **`.checkov.yaml`** - Checkov configuration file with severity overrides
+   ```yaml
+   # Checkov Configuration File
+   check-severity-overrides:
+     CKV_K8S_41: LOW
+     CKV_AWS_119: INFO
+     # ... 1527 total entries
+   ```
+
 ## 🔧 CI/CD Integration
 
 ### GitHub Actions Example
 
-Add severity-based filtering to your GitHub Actions workflow:
+Using the Checkov configuration file (recommended):
 
 ```yaml
 name: Security Scan
+
+on: [push, pull_request]
+
+jobs:
+  checkov:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Install Checkov
+        run: pip install checkov
+      
+      - name: Download severity mappings
+        run: |
+          curl -o .checkov.yaml https://raw.githubusercontent.com/webmutation/chekov-oss-severity-mappings/main/mappings/.checkov.yaml
+      
+      - name: Run Checkov with severity filtering
+        run: |
+          checkov -d . --config-file .checkov.yaml --check-severity HIGH --compact
+```
+
+Or using the enrichment scripts:
+
+```yaml
+name: Security Scan with Scripts
 
 on: [push, pull_request]
 
@@ -143,8 +205,25 @@ jobs:
 
 ### GitLab CI Example
 
+Using the Checkov configuration file (recommended):
+
 ```yaml
 security_scan:
+  image: python:3.11
+  before_script:
+    - pip install checkov
+    - git clone https://github.com/webmutation/chekov-oss-severity-mappings.git /tmp/mappings
+    - cp /tmp/mappings/mappings/.checkov.yaml .
+  script:
+    # Run Checkov with custom severity mappings and fail on HIGH+ issues
+    - checkov -d . --config-file .checkov.yaml --check-severity HIGH --compact
+  allow_failure: false
+```
+
+Or using the enrichment scripts:
+
+```yaml
+security_scan_with_scripts:
   image: python:3.11
   script:
     - pip install checkov
