@@ -9,18 +9,28 @@ JSON to stdout.
 Usage:
     checkov -o json | python enrich_checkov_output.py
     checkov -d /path/to/code -o json | python enrich_checkov_output.py > results.json
+    
+Environment Variables:
+    CHECKOV_MAPPING_FILE: Path to severity mapping JSON file (optional)
 """
 
 import json
 import sys
+import os
 from pathlib import Path
 
 
 def load_severity_mapping():
     """Load the severity mapping from the JSON file."""
-    # Look for mapping file relative to this script
-    script_dir = Path(__file__).parent
-    mapping_file = script_dir.parent / "mappings" / "checkov_severity_mapping.json"
+    # Check for environment variable first
+    mapping_file_str = os.environ.get('CHECKOV_MAPPING_FILE')
+    
+    if mapping_file_str:
+        mapping_file = Path(mapping_file_str)
+    else:
+        # Look for mapping file relative to this script
+        script_dir = Path(__file__).parent
+        mapping_file = script_dir.parent / "mappings" / "checkov_severity_mapping.json"
     
     if not mapping_file.exists():
         print(
@@ -28,7 +38,11 @@ def load_severity_mapping():
             file=sys.stderr
         )
         print(
-            "Run 'python scripts/parse_prisma_docs.py' to generate mappings.",
+            "Run 'python scripts/parse_prisma_docs.py' to generate mappings,",
+            file=sys.stderr
+        )
+        print(
+            "or set CHECKOV_MAPPING_FILE environment variable to specify a custom path.",
             file=sys.stderr
         )
         return {}

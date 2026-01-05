@@ -17,6 +17,7 @@ import re
 import json
 import subprocess
 import sys
+import shutil
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
@@ -34,7 +35,7 @@ def clone_or_update_repo() -> Path:
     
     if REPO_CLONE_DIR.exists():
         print(f"Repository already exists at {REPO_CLONE_DIR}, removing...")
-        subprocess.run(["rm", "-rf", str(REPO_CLONE_DIR)], check=True)
+        shutil.rmtree(REPO_CLONE_DIR)
     
     # Shallow clone to save time and space
     subprocess.run(
@@ -380,7 +381,7 @@ def main():
     
     # Cleanup cloned repo
     print(f"\nCleaning up cloned repository...")
-    subprocess.run(["rm", "-rf", str(REPO_CLONE_DIR)], check=True)
+    shutil.rmtree(REPO_CLONE_DIR)
     
     print("\nDone!")
 
