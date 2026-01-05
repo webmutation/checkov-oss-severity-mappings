@@ -10,6 +10,8 @@ on:
 jobs:
   generate-mappings:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     
     # Only run if mappings don't exist yet
     steps:
