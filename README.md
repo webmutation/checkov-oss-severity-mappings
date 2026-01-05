@@ -1,0 +1,1 @@
+# chekov-oss-severity-mappings
