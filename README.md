@@ -77,8 +77,8 @@ cd chekov-oss-severity-mappings
 # Run Checkov with the configuration file
 checkov -d /path/to/code --config-file mappings/.checkov.yaml
 
-# Filter by severity threshold (only show HIGH and CRITICAL)
-checkov -d /path/to/code --config-file mappings/.checkov.yaml --check-severity HIGH
+# Filter by severity threshold (fail only on HIGH and CRITICAL)
+checkov -d /path/to/code --config-file mappings/.checkov.yaml --hard-fail-on HIGH,CRITICAL
 
 # Or copy the config to your project root
 cp mappings/.checkov.yaml /path/to/your/project/.checkov.yaml
@@ -86,7 +86,7 @@ cd /path/to/your/project
 checkov -d . --config-file .checkov.yaml
 ```
 
-**Note**: The `.checkov.yaml` file contains `check-severity-overrides` for all 1,527 Checkov IDs, allowing Checkov to use the correct severity levels natively.
+**Note**: The `.checkov.yaml` file contains `severity-overrides` for all 1,527 Checkov IDs, allowing Checkov to use the correct severity levels natively.
 
 ## 📊 Available Mappings
 
@@ -129,7 +129,7 @@ This repository provides four mapping files in the `mappings/` directory:
 4. **`.checkov.yaml`** - Checkov configuration file with severity overrides
    ```yaml
    # Checkov Configuration File
-   check-severity-overrides:
+   severity-overrides:
      CKV_K8S_41: LOW
      CKV_AWS_119: INFO
      # ... 1527 total entries
@@ -166,7 +166,7 @@ jobs:
       
       - name: Run Checkov with severity filtering
         run: |
-          checkov -d . --config-file .checkov.yaml --check-severity HIGH --compact
+          checkov -d . --config-file .checkov.yaml --hard-fail-on HIGH,CRITICAL --compact
 ```
 
 Or using the enrichment scripts:
@@ -216,7 +216,7 @@ security_scan:
     - cp /tmp/mappings/mappings/.checkov.yaml .
   script:
     # Run Checkov with custom severity mappings and fail on HIGH+ issues
-    - checkov -d . --config-file .checkov.yaml --check-severity HIGH --compact
+    - checkov -d . --config-file .checkov.yaml --hard-fail-on HIGH,CRITICAL --compact
   allow_failure: false
 ```
 

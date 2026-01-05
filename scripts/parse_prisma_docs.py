@@ -337,10 +337,10 @@ def write_checkov_config(mapping: Dict[str, str], output_path: Path):
         '# Do not edit manually - run scripts/parse_prisma_docs.py to regenerate.',
         '#',
         '# Usage: checkov -d /path/to/code --config-file .checkov.yaml',
-        '#        checkov -d /path/to/code --config-file .checkov.yaml --check-severity HIGH',
+        '#        checkov -d /path/to/code --config-file .checkov.yaml --hard-fail-on HIGH,CRITICAL',
         '',
         '# Custom severity overrides for Checkov checks',
-        'check-severity-overrides:',
+        'severity-overrides:',
     ]
     
     # Sort by key for consistency
