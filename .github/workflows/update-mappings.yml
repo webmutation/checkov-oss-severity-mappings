@@ -1,0 +1,69 @@
+name: Update Severity Mappings
+
+on:
+  schedule:
+    # Run every Sunday at midnight UTC
+    - cron: '0 0 * * 0'
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  update-mappings:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          # No external dependencies needed
+      
+      - name: Run mapping generator
+        run: |
+          python scripts/parse_prisma_docs.py
+      
+      - name: Check for changes
+        id: git-check
+        run: |
+          git diff --exit-code mappings/ || echo "changes=true" >> $GITHUB_OUTPUT
+      
+      - name: Create Pull Request
+        if: steps.git-check.outputs.changes == 'true'
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: 'chore: Update Checkov severity mappings'
+          title: 'Update Checkov Severity Mappings'
+          body: |
+            ## Automated Mapping Update
+            
+            This PR updates the Checkov severity mappings from the latest Prisma Cloud documentation.
+            
+            ### Changes
+            - Updated `mappings/checkov_severity_mapping.json`
+            - Updated `mappings/checkov_severity_mapping_detailed.json`
+            - Updated `mappings/severity_mapping.py`
+            
+            ### Source
+            Generated from: https://github.com/hlxsites/prisma-cloud-docs
+            
+            Please review and merge if the changes look correct.
+          branch: update-severity-mappings
+          delete-branch: true
+          labels: |
+            automated
+            mappings
+      
+      - name: No changes detected
+        if: steps.git-check.outputs.changes != 'true'
+        run: |
+          echo "No changes detected in severity mappings."
